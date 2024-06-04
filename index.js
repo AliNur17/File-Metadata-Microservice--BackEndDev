@@ -1,7 +1,13 @@
+'use strict';
+
+require('dotenv').config();
+
 var express = require('express');
 var cors = require('cors');
-var multer = require('multer')
-require('dotenv').config()
+
+// require and use "multer"...
+var multer = require('multer');
+var upload = multer({ dest: 'uploads/' });
 
 var app = express();
 
@@ -12,27 +18,22 @@ app.get('/', function (req, res) {
   res.sendFile(process.cwd() + '/views/index.html');
 });
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    cb(null, file.fieldname + "-" + Date.now());
-  },
+app.post('/api/fileanalyse', upload.single('upfile'), (req, res) => {
+  try {
+    res.json({
+      "name": req.file.originalname,
+      "type": req.file.mimetype,
+      "size": req.file.size
+    });
+  } catch (err) {
+    res.send(400);
+  }
 });
 
-const upload = multer({ storage: storage });
+app.get('/hello', function (req, res) {
+  res.json({ greetings: "Hello, API" });
+});
 
-app.post('/api/fileanalyse', upload.single('upfile'), function(req, res) {
-  res.json({
-  "name": req.file.originalname,
-  "type": req.file.mimetype,
-  "size": req.file.size
-  })
-})
-
-
-const port = process.env.PORT || 3000;
-app.listen(port, function () {
-  console.log('Your app is listening on port ' + port)
+app.listen(process.env.PORT || 3000, function () {
+  console.log('Node.js listening ...');
 });
